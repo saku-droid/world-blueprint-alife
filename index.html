@@ -1,23 +1,194 @@
 <!doctype html>
-<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>世界の設計図 — ALife Live Architecture</title>
-<link rel="stylesheet" href="styles.css"></head><body><div class="app">
-<header class="top"><div class="brand"><div class="sig"></div><div><b>世界の設計図</b><div class="sub">ARTIFICIAL COGNITIVE EVOLUTION / OBSERVATION CONSOLE</div></div></div><div class="modebar"><span class="pill" id="sourceTime">loading snapshot…</span><button class="modebtn on" id="snapshotMode">SNAPSHOT / DEMO</button><button class="modebtn live" id="liveMode">LIVE LOCAL</button></div></header>
-<nav class="nav"><button class="on" data-v="wiring">配線図</button><button data-v="live">生きた断面</button><button data-v="walls">8枚の壁</button><button data-v="worlds">内的世界</button><button data-v="alife">ALife</button><button data-v="evidence">根拠</button></nav>
-<main class="main">
-<section class="view on" id="wiring"><div class="grid">
-<div class="panel left"><div class="head"><b>CHAT / 会話入口</b><span class="small">SOURCE RETRIEVAL</span></div><div class="chat"><div class="messages" id="messages"><div class="msg user">いま何が動いてる？</div><div class="msg ai">実ファイルの観測スナップショットを読み込みます。</div></div><div class="composer"><input id="chatInput" value="世界線とALifeの状態を見せて"><button class="go" id="send">送る</button></div></div><div class="head"><b>SOURCE REPOSITORY</b><span class="small">PUBLIC SAFE ONLY</span></div><div class="sources" id="sources"></div></div>
-<div class="panel stageWrap"><div class="stage" id="stage"><div class="stageTitle"><b>MASTER SIGNAL WIRING</b><span>壁は統合人格の外周を巡回。現実への書込みはデモでも無効。</span></div><svg viewBox="0 0 900 610" preserveAspectRatio="none"><path id="w1" class="wire" d="M50 330 C125 330 110 240 190 240"/><path id="w2" class="wire" d="M310 240 C365 240 360 310 420 310"/><path id="w3" class="wire" d="M500 290 C565 220 590 185 665 175"/><path id="w4" class="wire exp" d="M502 335 C570 355 590 385 665 388"/><path id="w5" class="wire exp" d="M500 365 C560 430 590 485 675 490"/><path id="w6" class="wire" d="M744 180 C815 190 825 260 845 285"/><path id="w7" class="wire exp" d="M748 390 C805 380 815 335 845 320"/><path id="w8" class="wire write" d="M848 342 C875 350 878 420 878 445"/><path id="w9" class="wire" d="M878 498 C845 545 780 548 735 545"/><path id="w10" class="wire" d="M660 545 C580 550 535 500 480 446"/></svg>
-<div class="node" style="left:3%;top:42%" data-node="chat"><div class="n">ENTRY</div><h4>CHAT</h4><p>会話を観測要求へ。</p></div><div class="node" style="left:20%;top:31%" data-node="repo"><div class="n">RETRIEVAL</div><h4>REPOSITORY</h4><p>根拠ファイルを抽出。</p></div><div class="node" style="left:38%;top:40%" data-node="ctx"><div class="n">ASSEMBLY</div><h4>CONTEXT</h4><p>事実・履歴・境界を束ねる。</p></div><div class="node core" style="left:46%;top:34%" data-node="persona"><div><div class="n">INDIVIDUAL BOUNDARY</div><h4>統合人格</h4><p>クロニクル・リング</p></div></div>
-<div class="wallRing" id="wallRing"></div>
-<div class="node" style="left:72%;top:18%" data-node="shadow"><div class="n">SHADOW</div><h4>影</h4><p>忠実な模写・別時計。</p></div><div class="node" style="left:72%;top:43%" data-node="worldline"><div class="n">COUNTERFACTUAL</div><h4>世界線</h4><p>6分岐の帰結を経験。</p></div><div class="node" style="left:72%;top:65%" data-node="genome"><div class="n">INHERITANCE</div><h4>GENOME</h4><p>答えでなく探し方。</p></div><div class="node" style="left:87%;top:36%" data-node="verify"><div class="n">CONTROL</div><h4>門番</h4><p>三状態判定。</p></div><div class="node" style="left:87%;top:57%;border-color:#5f362e" data-node="gate"><div class="n">WRITE PATH</div><h4>REALITY GATE</h4><p>公開デモでは常時無効。</p></div><div class="node" style="left:82%;top:78%" data-node="alife"><div class="n">EVOLUTION</div><h4>ALife</h4><p>適応→淘汰→継承。</p></div>
-<div class="controls"><button id="runFlow">観測信号を流す</button><button class="gold" id="replayWorldline">6世界線を再生</button><button class="gold" id="toggleWalls">壁を止める</button><button class="red" id="tryWrite">現実へ反映</button><div class="status" id="status">SNAPSHOT — 実ファイルの値をロード中。</div></div></div></div>
-<div class="panel right"><div class="head"><b>OBSERVATION / FACTS</b><span class="small" id="modeLabel">SNAPSHOT</span></div><div class="facts"><div class="metricgrid"><div class="metric"><span>generation</span><b id="mGen">—</b></div><div class="metric"><span>population</span><b id="mPop">—</b></div><div class="metric"><span>inheritance</span><b id="mInh">—</b></div><div class="metric"><span>production write</span><b id="mWrite">—</b></div></div><div class="card"><h3>WORLDLINE</h3><p id="worldlineFact">—</p></div><div class="card"><h3>PERSONA AUTHORITY</h3><p id="authorityFact">—</p></div><div class="card"><h3>SELECTED NODE</h3><p id="inspect">ノードか壁をタップすると、根拠だけを表示します。</p></div></div></div></div></section>
-<section class="view" id="live"><div class="livepanel"><div class="panel bigpanel"><h2>生きた内部断面 / OBSERVATION REPLAY</h2><p>SNAPSHOTでは実ファイルに記録された世代列を時間順に再生する。LIVE LOCALではPC側の読み取り専用bridgeから同じ形のJSONを受け取る。</p><div class="metricgrid"><div class="metric"><span>state</span><b id="liveState">—</b></div><div class="metric"><span>heartbeat</span><b id="liveHeartbeat">—</b></div><div class="metric"><span>generation</span><b id="liveGen">—</b></div><div class="metric"><span>learningScore</span><b id="liveLearn">—</b></div></div><div class="timeline" id="timeline"></div><button class="go" id="replayGen" style="margin-top:10px">世代ログを再生</button></div><div class="panel bigpanel"><h2>LIVE LOCAL</h2><p>GitHub Pages単体ではPC内部のプロセスは見えない。PCで付属bridgeを起動すると、公開ページからではなく同一ネットワーク上のブラウザが読み取り専用状態を取得できる。</p><div class="card"><h3>ENDPOINT</h3><input id="liveEndpoint" value="http://localhost:8787/state"><button class="go" id="connectLive" style="margin-top:7px">読み取り専用で接続</button><p id="liveResult" style="margin-top:8px">未接続</p></div><div class="card"><h3>KEYLESS</h3><p>署名鍵は不要。bridgeは status / heartbeat / worldline の許可ファイルだけを読む。本番書込みAPIは持たない。</p></div></div></div></section>
-<section class="view" id="walls"><div class="wallsGrid" id="wallsGrid"></div></section>
-<section class="view" id="worlds"><div class="worldGrid"><div class="world reality"><h3 style="color:#d88a74">REALITY / 現実</h3><p>本番権限。persona-kernelでは productionChange = separate-human-approval-required。</p></div><div class="world shadow"><h3 style="color:#8cd4a7">SHADOW / 影</h3><p>surfaceObservation = read-only。shadowExperiment = bounded-and-reversible。</p></div><div class="world vent"><h3 style="color:#d08a68">VENT / 発散器</h3><p>設計概念。発散器と世界線を混同しない。公開版では「実装済み」と断定しない。</p></div><div class="world line"><h3 style="color:#dcc06e">WORLDLINES / 世界線</h3><p id="worldDetail">実ログを読み込み中。</p></div><div class="world fiction"><h3 style="color:#b4a2ce">FICTION / 虚構</h3><p>由来を保って仮説へ送る設計。事実性を直接持たせない。</p></div></div></section>
-<section class="view" id="alife"><div class="alife"><div class="chart"><div class="head" style="padding:0 0 8px;border:0"><b>RECORDED GENERATIONS</b><span class="small">learningScore</span></div><div class="bars" id="bars"></div><div class="small" id="barCaption"></div></div><div class="panel bigpanel"><h2>ALife snapshot</h2><div class="metricgrid"><div class="metric"><span>generationStart</span><b id="aStart">—</b></div><div class="metric"><span>generationEnd</span><b id="aEnd">—</b></div><div class="metric"><span>novelty latest</span><b id="aNov">—</b></div><div class="metric"><span>bred latest</span><b id="aBred">—</b></div></div><div class="card"><h3>Genome</h3><p>docs/28: 「答えではなく、答えの探し方が進化する」。公開版はこの表現を出典付きで扱う。</p></div><div class="card"><h3>Safety</h3><span class="tag ok">productionAuthorized:false</span><span class="tag warn">signature unavailable</span><span class="tag ok">no private key bundled</span></div></div></div></section>
-<section class="view" id="evidence"><div class="livepanel"><div class="panel bigpanel"><h2>根拠ファイル / EVIDENCE MAP</h2><div id="evidenceList"></div></div><div class="panel bigpanel"><h2>公開版のルール</h2><ul><li>SNAPSHOT = 実ファイルに存在する値。</li><li>REPLAY / DEMO = その値を可視化する演出。新しい事実ではない。</li><li>LIVE LOCAL = PC側の読取専用bridgeから受け取った現在値。</li><li>秘密鍵・本番書込み・Founder由来は公開物へ含めない。</li></ul><div class="card"><h3>SOVEREIGN_GATES</h3><p id="sgates">—</p></div></div></div></section>
-</main><footer class="foot"><span>WORLD BLUEPRINT // PUBLIC DEMO</span><b>発見を自動化するのではない。発見者を進化させる。</b><span>REALITY WRITE = DISABLED</span></footer></div>
-<div class="approval" id="approval"><div class="dialog"><h2>REALITY WRITE — DISABLED IN PUBLIC DEMO</h2><p>この公開版は秘密鍵も本番書込み機能も持ちません。人間承認の概念は表示できますが、現実への変更は実行できません。</p><button class="close" id="closeApproval">戻る</button></div></div>
-<script src="app.js"></script></body></html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#f5f2e9" />
+  <title>世界の設計図 — アプリ保管庫と話そう</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="assumption-banner">これは想定です <span>CONCEPT MOCK</span></div>
+
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true"><i></i></div>
+        <div>
+          <strong>世界の設計図</strong>
+          <small>APP REPOSITORY / COGNITIVE EVOLUTION CONSOLE</small>
+        </div>
+      </div>
+      <div class="runtime-chip"><span class="dot"></span><b id="runtimeState">SNAPSHOT</b><small id="runtimeGeneration">G—</small></div>
+    </header>
+
+    <nav class="tabs" aria-label="メインナビゲーション">
+      <button class="active" data-view="talk">保管庫と話す</button>
+      <button data-view="slice">生きた断面</button>
+      <button data-view="wiring">配線図</button>
+      <button data-view="evolution">世代</button>
+      <button data-view="evidence">根拠</button>
+    </nav>
+
+    <main>
+      <section class="view active" id="talk">
+        <div class="hero">
+          <div class="hero-copy">
+            <p class="eyebrow">APP REPOSITORY CHAT / 想定UI</p>
+            <h1>さぁ、<br><span>アプリ保管庫と話そう。</span></h1>
+            <p>コード、設計書、実験ログ、セキュリティ、ALifeの状態をひとつの入口から。<br class="desktop-only">回答は <b>実測</b> と <b>想定・提案</b> を分けて表示します。</p>
+          </div>
+
+          <aside class="snapshot-card">
+            <div class="snapshot-title"><span class="pulse"></span>現在のスナップショット</div>
+            <div class="snapshot-grid">
+              <div><small>generation</small><b id="snapGen">—</b></div>
+              <div><small>population</small><b id="snapPop">—</b></div>
+              <div><small>inheritance</small><b id="snapInh">—</b></div>
+              <div><small>production write</small><b class="safe" id="snapWrite">FALSE</b></div>
+            </div>
+          </aside>
+        </div>
+
+        <div class="workspace">
+          <section class="chat-panel">
+            <div class="chat-head">
+              <div><b>保管庫</b><small>想定LLM / 実ファイル参照デモ</small></div>
+              <span class="status-badge">DEMO</span>
+            </div>
+
+            <div class="prompt-row" id="promptRow">
+              <button data-prompt="ここを分割したいんだ。">ここを分割したい</button>
+              <button data-prompt="このアプリの仕組みの、1番改善するべき点は？">一番改善するべき点は？</button>
+              <button data-prompt="どこまでこのアプリは自律的に育った？">どこまで自律的に育った？</button>
+              <button data-prompt="保管庫のセキュリティ、次は何を実装できる？">次のセキュリティは？</button>
+              <button data-prompt="技術進捗を教えて。">技術進捗を教えて</button>
+            </div>
+
+            <div class="messages" id="messages">
+              <article class="bubble repository">
+                <div class="avatar">R</div>
+                <div class="bubble-body">
+                  <div class="bubble-meta"><b>アプリ保管庫</b><span class="label assumption">想定応答</span></div>
+                  <p>こんにちは。何を見ますか？ コード構造、改善、セキュリティ、ALife、実験結果、技術進捗から探せます。</p>
+                  <div class="source-line">この会話UI自体は想定。下に出る実測値は verified-facts.json を参照。</div>
+                </div>
+              </article>
+            </div>
+
+            <div class="composer">
+              <textarea id="chatInput" rows="1" placeholder="アプリ保管庫に聞いてみる…"></textarea>
+              <button id="sendBtn" aria-label="送信">↑</button>
+            </div>
+          </section>
+
+          <aside class="inspector">
+            <div class="inspector-head"><b>ANSWER TRACE</b><span>回答の内訳</span></div>
+            <div class="trace-card">
+              <span class="trace-tag fact">実測</span>
+              <b>実ファイルに存在する値</b>
+              <p>世代、population、継承、世界線結果、権限契約など。</p>
+            </div>
+            <div class="trace-card">
+              <span class="trace-tag proposal">想定・提案</span>
+              <b>LLMが組み立てる部分</b>
+              <p>改善候補、分割案、追加セキュリティなど。事実とは分離。</p>
+            </div>
+            <div class="trace-card dark">
+              <small>WORLDLINE</small>
+              <b id="worldlineSummary">loading…</b>
+              <p id="authoritySummary">—</p>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="view" id="slice">
+        <div class="section-head"><div><p class="eyebrow">LIVE CROSS-SECTION</p><h2>生きた断面</h2></div><p>入口から現実ゲートまで、内部を縦に切って見る想定UI。</p></div>
+        <div class="slice-layout">
+          <div class="slice-stack" id="sliceStack">
+            <button data-node="CHAT"><span>01</span><b>CHAT</b><small>観測要求</small></button>
+            <i></i>
+            <button data-node="REPOSITORY"><span>02</span><b>REPOSITORY</b><small>実ファイル取得</small></button>
+            <i></i>
+            <button data-node="CONTEXT"><span>03</span><b>CONTEXT</b><small>事実 / 履歴 / 境界</small></button>
+            <i></i>
+            <button class="core-node" data-node="統合人格"><span>04</span><b>統合人格</b><small>individual boundary</small></button>
+            <i></i>
+            <button data-node="SHADOW"><span>05</span><b>SHADOW</b><small>bounded experiment</small></button>
+            <i></i>
+            <button data-node="WORLDLINE"><span>06</span><b>WORLDLINE</b><small>counterfactual learning</small></button>
+            <i></i>
+            <button data-node="VERIFY"><span>07</span><b>VERIFY</b><small>passed / rejected / unavailable</small></button>
+            <i></i>
+            <button class="gate-node" data-node="REALITY GATE"><span>08</span><b>REALITY GATE</b><small>human approval required</small></button>
+            <i></i>
+            <button data-node="ALife"><span>09</span><b>ALife</b><small>適応 → 淘汰 → 継承</small></button>
+          </div>
+          <aside class="slice-info">
+            <span class="label assumption">想定UI</span>
+            <h3 id="sliceTitle">断面をタップ</h3>
+            <p id="sliceText">各器官がどの役割か、実測と想定を分けて説明します。</p>
+            <button id="pulseSlice">断面に信号を流す</button>
+          </aside>
+        </div>
+      </section>
+
+      <section class="view" id="wiring">
+        <div class="section-head"><div><p class="eyebrow">MASTER SIGNAL WIRING</p><h2>配線図</h2></div><p>スマホは横スワイプ。ノードをタップすると説明が出ます。</p></div>
+        <div class="wiring-scroll" id="wiringScroll">
+          <div class="wiring-board">
+            <svg viewBox="0 0 980 560" preserveAspectRatio="none" aria-hidden="true">
+              <path class="line" d="M60 280 C130 280 120 190 220 190"/>
+              <path class="line" d="M320 190 C380 190 370 280 440 280"/>
+              <path class="line gold" d="M510 250 C590 160 650 135 730 135"/>
+              <path class="line gold" d="M510 305 C590 315 650 335 730 335"/>
+              <path class="line gold" d="M510 345 C580 415 650 455 730 455"/>
+              <path class="line" d="M820 145 C890 165 900 230 910 270"/>
+              <path class="line red" d="M820 350 C900 350 910 390 920 420"/>
+              <path class="line" d="M920 455 C840 520 690 520 580 430"/>
+            </svg>
+            <button class="w-node" style="left:3%;top:43%" data-node="CHAT"><b>CHAT</b><small>入口</small></button>
+            <button class="w-node" style="left:20%;top:27%" data-node="REPOSITORY"><b>REPOSITORY</b><small>根拠取得</small></button>
+            <button class="w-node" style="left:39%;top:43%" data-node="CONTEXT"><b>CONTEXT</b><small>事実統合</small></button>
+            <button class="w-node core" style="left:47%;top:38%" data-node="統合人格"><b>統合人格</b><small>boundary</small></button>
+            <button class="w-node" style="left:72%;top:18%" data-node="SHADOW"><b>SHADOW</b><small>影</small></button>
+            <button class="w-node" style="left:72%;top:54%" data-node="WORLDLINE"><b>WORLDLINE</b><small>世界線</small></button>
+            <button class="w-node" style="left:72%;top:77%" data-node="ALife"><b>ALife</b><small>世代</small></button>
+            <button class="w-node" style="left:89%;top:43%" data-node="VERIFY"><b>VERIFY</b><small>門番</small></button>
+            <button class="w-node gate" style="left:89%;top:70%" data-node="REALITY GATE"><b>REALITY GATE</b><small>停止中</small></button>
+          </div>
+        </div>
+        <div class="wiring-caption" id="wiringCaption">ノードをタップすると、ここに役割が出ます。</div>
+      </section>
+
+      <section class="view" id="evolution">
+        <div class="section-head"><div><p class="eyebrow">ALIFE / RECORDED & DEMO</p><h2>世代</h2></div><p>実ログの世代列を見つつ、想定デモとして安全な疑似世代進行も試せます。</p></div>
+        <div class="evo-grid">
+          <div class="panel-card">
+            <div class="card-head"><b>RECORDED</b><span class="label fact">実測</span></div>
+            <div class="evo-metrics"><div><small>generation</small><b id="evoGen">—</b></div><div><small>learning</small><b id="evoLearn">—</b></div><div><small>novelty</small><b id="evoNovelty">—</b></div><div><small>genomes</small><b id="evoGenomes">—</b></div></div>
+            <div class="bars" id="bars"></div>
+          </div>
+          <div class="panel-card demo-card">
+            <div class="card-head"><b>DEMO EVOLUTION</b><span class="label assumption">想定</span></div>
+            <p>実ログを書き換えず、画面上だけで1世代進める想定デモ。</p>
+            <div class="demo-generation"><small>demo generation</small><b id="demoGeneration">—</b><span id="demoOutcome">ready</span></div>
+            <button class="primary" id="advanceGeneration">+1 世代を回す</button>
+            <div class="demo-log" id="demoLog"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="evidence">
+        <div class="section-head"><div><p class="eyebrow">EVIDENCE MAP</p><h2>根拠</h2></div><p>このデモの事実部分に使っている公開安全化済みの根拠。</p></div>
+        <div class="evidence-list" id="evidenceList"></div>
+      </section>
+    </main>
+
+    <footer><span>WORLD BLUEPRINT / CONCEPT MOCK</span><b>答えを推論させるのではなく、答えを生み出せる思考回路を進化させる。</b><span>REALITY WRITE = DISABLED</span></footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
