@@ -1,193 +1,96 @@
 <!doctype html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#f5f2e9" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f6f3e9">
   <title>世界の設計図 — アプリ保管庫と話そう</title>
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="assumption-banner">これは想定です <span>CONCEPT MOCK</span></div>
+  <div class="assumption">これは想定です <span>PUBLIC CONCEPT DEMO</span></div>
 
-  <div class="shell">
+  <div class="app">
     <header class="topbar">
       <div class="brand">
-        <div class="brand-mark" aria-hidden="true"><i></i></div>
-        <div>
-          <strong>世界の設計図</strong>
-          <small>APP REPOSITORY / COGNITIVE EVOLUTION CONSOLE</small>
-        </div>
+        <div class="mark"><i></i></div>
+        <div><b>アプリ保管庫</b><small>CHRONICLE RING / WORLD BLUEPRINT</small></div>
       </div>
-      <div class="runtime-chip"><span class="dot"></span><b id="runtimeState">SNAPSHOT</b><small id="runtimeGeneration">G—</small></div>
+      <div class="top-actions">
+        <div class="runtime"><span></span><b id="runtimeState">loading</b><small id="runtimeGen">G—</small></div>
+        <button id="openStructure" class="structure-btn">内部で何が回ってる？</button>
+      </div>
     </header>
 
-    <nav class="tabs" aria-label="メインナビゲーション">
-      <button class="active" data-view="talk">保管庫と話す</button>
-      <button data-view="slice">生きた断面</button>
-      <button data-view="wiring">配線図</button>
-      <button data-view="evolution">世代</button>
-      <button data-view="evidence">根拠</button>
-    </nav>
-
-    <main>
-      <section class="view active" id="talk">
-        <div class="hero">
-          <div class="hero-copy">
-            <p class="eyebrow">APP REPOSITORY CHAT / 想定UI</p>
-            <h1>さぁ、<br><span>アプリ保管庫と話そう。</span></h1>
-            <p>コード、設計書、実験ログ、セキュリティ、ALifeの状態をひとつの入口から。<br class="desktop-only">回答は <b>実測</b> と <b>想定・提案</b> を分けて表示します。</p>
-          </div>
-
-          <aside class="snapshot-card">
-            <div class="snapshot-title"><span class="pulse"></span>現在のスナップショット</div>
-            <div class="snapshot-grid">
-              <div><small>generation</small><b id="snapGen">—</b></div>
-              <div><small>population</small><b id="snapPop">—</b></div>
-              <div><small>inheritance</small><b id="snapInh">—</b></div>
-              <div><small>production write</small><b class="safe" id="snapWrite">FALSE</b></div>
-            </div>
-          </aside>
-        </div>
-
-        <div class="workspace">
-          <section class="chat-panel">
-            <div class="chat-head">
-              <div><b>保管庫</b><small>想定LLM / 実ファイル参照デモ</small></div>
-              <span class="status-badge">DEMO</span>
-            </div>
-
-            <div class="prompt-row" id="promptRow">
-              <button data-prompt="ここを分割したいんだ。">ここを分割したい</button>
-              <button data-prompt="このアプリの仕組みの、1番改善するべき点は？">一番改善するべき点は？</button>
-              <button data-prompt="どこまでこのアプリは自律的に育った？">どこまで自律的に育った？</button>
-              <button data-prompt="保管庫のセキュリティ、次は何を実装できる？">次のセキュリティは？</button>
-              <button data-prompt="技術進捗を教えて。">技術進捗を教えて</button>
-            </div>
-
-            <div class="messages" id="messages">
-              <article class="bubble repository">
-                <div class="avatar">R</div>
-                <div class="bubble-body">
-                  <div class="bubble-meta"><b>アプリ保管庫</b><span class="label assumption">想定応答</span></div>
-                  <p>こんにちは。何を見ますか？ コード構造、改善、セキュリティ、ALife、実験結果、技術進捗から探せます。</p>
-                  <div class="source-line">この会話UI自体は想定。下に出る実測値は verified-facts.json を参照。</div>
-                </div>
-              </article>
-            </div>
-
-            <div class="composer">
-              <textarea id="chatInput" rows="1" placeholder="アプリ保管庫に聞いてみる…"></textarea>
-              <button id="sendBtn" aria-label="送信">↑</button>
-            </div>
-          </section>
-
-          <aside class="inspector">
-            <div class="inspector-head"><b>ANSWER TRACE</b><span>回答の内訳</span></div>
-            <div class="trace-card">
-              <span class="trace-tag fact">実測</span>
-              <b>実ファイルに存在する値</b>
-              <p>世代、population、継承、世界線結果、権限契約など。</p>
-            </div>
-            <div class="trace-card">
-              <span class="trace-tag proposal">想定・提案</span>
-              <b>LLMが組み立てる部分</b>
-              <p>改善候補、分割案、追加セキュリティなど。事実とは分離。</p>
-            </div>
-            <div class="trace-card dark">
-              <small>WORLDLINE</small>
-              <b id="worldlineSummary">loading…</b>
-              <p id="authoritySummary">—</p>
-            </div>
-          </aside>
+    <main class="chat-page">
+      <section class="intro" id="intro">
+        <p class="eyebrow">ONE SCREEN / APP REPOSITORY CONVERSATION</p>
+        <h1>さぁ、<br><span>アプリ保管庫と話そう。</span></h1>
+        <p>普通のチャットと違って、裏では会話していない間も影・世代・台帳が回る。<br>人の発話は「毎回の起動スイッチ」ではなく、流れ込む一つのイベント。</p>
+        <div class="truth-row">
+          <span class="truth actual">実コード</span><span>自発発話・連続世代・NativeMind会話あり</span>
+          <span class="truth no">未接続</span><span>公開版から実LLM / 本番書込み</span>
         </div>
       </section>
 
-      <section class="view" id="slice">
-        <div class="section-head"><div><p class="eyebrow">LIVE CROSS-SECTION</p><h2>生きた断面</h2></div><p>入口から現実ゲートまで、内部を縦に切って見る想定UI。</p></div>
-        <div class="slice-layout">
-          <div class="slice-stack" id="sliceStack">
-            <button data-node="CHAT"><span>01</span><b>CHAT</b><small>観測要求</small></button>
-            <i></i>
-            <button data-node="REPOSITORY"><span>02</span><b>REPOSITORY</b><small>実ファイル取得</small></button>
-            <i></i>
-            <button data-node="CONTEXT"><span>03</span><b>CONTEXT</b><small>事実 / 履歴 / 境界</small></button>
-            <i></i>
-            <button class="core-node" data-node="統合人格"><span>04</span><b>統合人格</b><small>individual boundary</small></button>
-            <i></i>
-            <button data-node="SHADOW"><span>05</span><b>SHADOW</b><small>bounded experiment</small></button>
-            <i></i>
-            <button data-node="WORLDLINE"><span>06</span><b>WORLDLINE</b><small>counterfactual learning</small></button>
-            <i></i>
-            <button data-node="VERIFY"><span>07</span><b>VERIFY</b><small>passed / rejected / unavailable</small></button>
-            <i></i>
-            <button class="gate-node" data-node="REALITY GATE"><span>08</span><b>REALITY GATE</b><small>human approval required</small></button>
-            <i></i>
-            <button data-node="ALife"><span>09</span><b>ALife</b><small>適応 → 淘汰 → 継承</small></button>
-          </div>
-          <aside class="slice-info">
-            <span class="label assumption">想定UI</span>
-            <h3 id="sliceTitle">断面をタップ</h3>
-            <p id="sliceText">各器官がどの役割か、実測と想定を分けて説明します。</p>
-            <button id="pulseSlice">断面に信号を流す</button>
-          </aside>
+      <section class="chat-shell">
+        <div class="chat-status">
+          <div><span class="light"></span><b>保管庫の妖精</b><small id="organState">native-symbolic / public replay</small></div>
+          <div class="mini-stats"><span id="miniGen">G—</span><span id="miniPop">—体</span><span id="miniWrite">WRITE FALSE</span></div>
         </div>
-      </section>
 
-      <section class="view" id="wiring">
-        <div class="section-head"><div><p class="eyebrow">MASTER SIGNAL WIRING</p><h2>配線図</h2></div><p>スマホは横スワイプ。ノードをタップすると説明が出ます。</p></div>
-        <div class="wiring-scroll" id="wiringScroll">
-          <div class="wiring-board">
-            <svg viewBox="0 0 980 560" preserveAspectRatio="none" aria-hidden="true">
-              <path class="line" d="M60 280 C130 280 120 190 220 190"/>
-              <path class="line" d="M320 190 C380 190 370 280 440 280"/>
-              <path class="line gold" d="M510 250 C590 160 650 135 730 135"/>
-              <path class="line gold" d="M510 305 C590 315 650 335 730 335"/>
-              <path class="line gold" d="M510 345 C580 415 650 455 730 455"/>
-              <path class="line" d="M820 145 C890 165 900 230 910 270"/>
-              <path class="line red" d="M820 350 C900 350 910 390 920 420"/>
-              <path class="line" d="M920 455 C840 520 690 520 580 430"/>
-            </svg>
-            <button class="w-node" style="left:3%;top:43%" data-node="CHAT"><b>CHAT</b><small>入口</small></button>
-            <button class="w-node" style="left:20%;top:27%" data-node="REPOSITORY"><b>REPOSITORY</b><small>根拠取得</small></button>
-            <button class="w-node" style="left:39%;top:43%" data-node="CONTEXT"><b>CONTEXT</b><small>事実統合</small></button>
-            <button class="w-node core" style="left:47%;top:38%" data-node="統合人格"><b>統合人格</b><small>boundary</small></button>
-            <button class="w-node" style="left:72%;top:18%" data-node="SHADOW"><b>SHADOW</b><small>影</small></button>
-            <button class="w-node" style="left:72%;top:54%" data-node="WORLDLINE"><b>WORLDLINE</b><small>世界線</small></button>
-            <button class="w-node" style="left:72%;top:77%" data-node="ALife"><b>ALife</b><small>世代</small></button>
-            <button class="w-node" style="left:89%;top:43%" data-node="VERIFY"><b>VERIFY</b><small>門番</small></button>
-            <button class="w-node gate" style="left:89%;top:70%" data-node="REALITY GATE"><b>REALITY GATE</b><small>停止中</small></button>
-          </div>
+        <div class="messages" id="messages" aria-live="polite"></div>
+
+        <div class="suggestions" id="suggestions">
+          <button data-q="どこまでこのアプリは自律的に育った？">どこまで育った？</button>
+          <button data-q="いま何世代？">いま何世代？</button>
+          <button data-q="提案を全部見せて">提案を見せて</button>
+          <button data-q="今できることと、まだできないことは？">何ができる？</button>
+          <button data-q="世界線はどうなってる？">世界線は？</button>
         </div>
-        <div class="wiring-caption" id="wiringCaption">ノードをタップすると、ここに役割が出ます。</div>
-      </section>
 
-      <section class="view" id="evolution">
-        <div class="section-head"><div><p class="eyebrow">ALIFE / RECORDED & DEMO</p><h2>世代</h2></div><p>実ログの世代列を見つつ、想定デモとして安全な疑似世代進行も試せます。</p></div>
-        <div class="evo-grid">
-          <div class="panel-card">
-            <div class="card-head"><b>RECORDED</b><span class="label fact">実測</span></div>
-            <div class="evo-metrics"><div><small>generation</small><b id="evoGen">—</b></div><div><small>learning</small><b id="evoLearn">—</b></div><div><small>novelty</small><b id="evoNovelty">—</b></div><div><small>genomes</small><b id="evoGenomes">—</b></div></div>
-            <div class="bars" id="bars"></div>
-          </div>
-          <div class="panel-card demo-card">
-            <div class="card-head"><b>DEMO EVOLUTION</b><span class="label assumption">想定</span></div>
-            <p>実ログを書き換えず、画面上だけで1世代進める想定デモ。</p>
-            <div class="demo-generation"><small>demo generation</small><b id="demoGeneration">—</b><span id="demoOutcome">ready</span></div>
-            <button class="primary" id="advanceGeneration">+1 世代を回す</button>
-            <div class="demo-log" id="demoLog"></div>
-          </div>
+        <div class="composer">
+          <textarea id="chatInput" rows="1" placeholder="保管庫に話しかける…"></textarea>
+          <button id="send">↑</button>
         </div>
-      </section>
-
-      <section class="view" id="evidence">
-        <div class="section-head"><div><p class="eyebrow">EVIDENCE MAP</p><h2>根拠</h2></div><p>このデモの事実部分に使っている公開安全化済みの根拠。</p></div>
-        <div class="evidence-list" id="evidenceList"></div>
+        <div class="composer-meta">
+          <span>公開版の返答は実コードの会話規則を再現したデモ</span>
+          <button id="forceProactive">自発発話を今見る</button>
+        </div>
       </section>
     </main>
 
-    <footer><span>WORLD BLUEPRINT / CONCEPT MOCK</span><b>答えを推論させるのではなく、答えを生み出せる思考回路を進化させる。</b><span>REALITY WRITE = DISABLED</span></footer>
+    <footer><span>PUBLIC DEMO</span><b>会話していない間も、内側は回る。</b><span>PRODUCTION WRITE = DISABLED</span></footer>
   </div>
+
+  <div class="drawer-mask" id="drawerMask"></div>
+  <aside class="drawer" id="drawer" aria-hidden="true">
+    <div class="drawer-head">
+      <div><span class="truth actual">実コードから再構成</span><h2>ファイルから自動で回る構造</h2><p>チャットとは別画面ではなく、同じ一画面の“内部を覗く”ドロワー。</p></div>
+      <button id="closeStructure">×</button>
+    </div>
+
+    <div class="loop-summary">
+      <div><small>UI TICK</small><b>2s</b></div>
+      <div><small>SUPERVISOR</small><b>1s</b></div>
+      <div><small>PHANTOM</small><b>12 gen/batch</b></div>
+      <div><small>NATIVE LLM</small><b>未接続</b></div>
+    </div>
+
+    <div class="pipeline" id="pipeline"></div>
+    <button class="play" id="playLoop">自動循環を再生</button>
+    <div class="pipeline-note" id="pipelineNote">ノードをタップすると、実ファイルと役割を表示します。</div>
+
+    <section class="recheck">
+      <h3>隔離コピーでの再実行確認</h3>
+      <div class="recheck-grid" id="recheckGrid"></div>
+    </section>
+
+    <section class="limitations">
+      <h3>そのまま使えないところ</h3>
+      <div id="limitations"></div>
+    </section>
+  </aside>
 
   <script src="app.js"></script>
 </body>
