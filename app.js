@@ -1,10 +1,9 @@
 const $=q=>document.querySelector(q), $$=q=>[...document.querySelectorAll(q)];
-let FACTS=null, STRUCTURE=null, chatStarted=false, lastHumanAt=0, lastProactiveAt=0;
+let FACTS=null, chatStarted=false, lastHumanAt=0, lastProactiveAt=0;
 const proactiveSeen=new Set();
-const sleep=t=>new Promise(r=>setTimeout(r,t));
-
 const esc=s=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
 const num=n=>Number.isFinite(Number(n))?Number(n).toLocaleString('ja-JP'):'—';
+
 function msg(who,text,{badges=[],evidence=''}={}){
   const role=who==='user'?'あなた':'保管庫の妖精',avatar=who==='user'?'人':'妖';
   const labels=badges.map(b=>`<span class="badge ${b.kind}">${esc(b.text)}</span>`).join('');
@@ -13,12 +12,12 @@ function msg(who,text,{badges=[],evidence=''}={}){
 }
 function initialMessage(){
   const s=FACTS.snapshot;
-  msg('fairy',`こんにちは。いま影には実ログのスナップショットがあり、G${s.generationEnd}、population ${s.population}、継承 ${s.inheritanceEvents}件を観測しています。\n\nこの公開版では私の返答は再生ですが、元のローカル実装には自発発話・連続世代・NativeMind対話が実際にあります。`,{badges:[{kind:'real',text:'実測'},{kind:'demo',text:'公開デモ'}],evidence:'phantom-status.json / admin.mjs'});
+  msg('fairy',`こんにちは。いま影には実ログのスナップショットがあり、G${s.generationEnd}、population ${s.population}、継承 ${s.inheritanceEvents}件を観測しています。\n\nこの公開版では返答は再生ですが、元のローカル実装には自発発話・連続世代・NativeMind対話があります。`,{badges:[{kind:'real',text:'実測'},{kind:'demo',text:'公開デモ'}],evidence:'phantom-status.json / admin.mjs'});
   chatStarted=true;
 }
 function proactiveThoughts(){
-  const s=FACTS.snapshot, g=s.latestGenerationRecord, wl=s.worldlineLatest, proposals=s.proposals||[];
-  const generation=s.generationEnd, bucket=Math.floor(generation/120), fp=`snapshot:${generation}`;
+  const s=FACTS.snapshot,g=s.latestGenerationRecord,wl=s.worldlineLatest,proposals=s.proposals||[];
+  const generation=s.generationEnd,bucket=Math.floor(generation/120),fp=`snapshot:${generation}`;
   const pending=proposals.filter(p=>!p.shadowExperimentState).length;
   return [
     {key:fp+':continuous:'+bucket,text:`こちらから一つ。影の連続世代は記録上 G${num(generation)} です。直近の新規性は ${g.novelty}。世代数だけを進化とは扱わず、流れを追っています。`,e:'admin.mjs proactiveThoughts() / phantom-status.json'},
@@ -54,25 +53,15 @@ function answer(q){
   return {text:'問いとして受け取りました。公開版では推測で穴埋めせず、実ログと実コードで裏づけられる範囲だけ返します。世代・提案・世界線・自律・できること、のどれかを具体的に聞いてください。',e:'NativeMind unknown-preserving behavior'};
 }
 function ask(q){q=String(q||'').trim();if(!q)return;lastHumanAt=Date.now();msg('user',q);$('#chatInput').value='';setTimeout(()=>{const a=answer(q);msg('fairy',a.text,{badges:[{kind:'real',text:'実コード由来'},{kind:'demo',text:'公開再生'}],evidence:a.e});},130)}
-
 async function load(){
-  [FACTS,STRUCTURE]=await Promise.all([
-    fetch('./data/verified-facts.json',{cache:'no-store'}).then(r=>r.json()),
-    fetch('./data/runtime-structure.json',{cache:'no-store'}).then(r=>r.json())
-  ]);
+  FACTS=await fetch('./data/verified-facts.json',{cache:'no-store'}).then(r=>r.json());
   const s=FACTS.snapshot;
   $('#runtimeState').textContent=s.statusState||'snapshot';$('#runtimeGen').textContent='G'+s.generationEnd;
   $('#miniGen').textContent='G'+s.generationEnd;$('#miniPop').textContent=s.population+'体';$('#miniWrite').textContent='WRITE '+String(s.worldlineLatest.productionAuthorized).toUpperCase();
-  buildDrawer();initialMessage();setInterval(()=>offerProactive(false),5000);
+  initialMessage();setInterval(()=>offerProactive(false),5000);
 }
-function buildDrawer(){
-  const p=$('#pipeline');p.innerHTML='';
-  STRUCTURE.components.forEach((c,i)=>{const el=document.createElement('button');el.className='pipe-node';el.dataset.id=c.id;el.innerHTML=`<div class="pmeta"><span>${String(i+1).padStart(2,'0')} · ${esc(c.file)}</span><span>${esc(c.cadence)}</span></div><b>${esc(c.label)}</b><p>${esc(c.does)}</p>`;el.onclick=()=>{$$('.pipe-node').forEach(x=>x.classList.remove('active'));el.classList.add('active');$('#pipelineNote').textContent=`${c.file} :: ${c.functions.join(' / ')} — ${c.does}`};p.appendChild(el)});
-  const r=STRUCTURE.actualRecheck;$('#recheckGrid').innerHTML=[['admin server',r.adminServerStarted],['shadow spawned',r.shadowWorkerSpawned],['generation',`G${r.generationObservedBefore}→G${r.generationObservedAfter}`],['dialogue',r.nativeDialogueAnswered],['external model',r.externalModelUsed],['isolated copy',r.isolatedCopy]].map(([k,v])=>`<div><small>${esc(k)}</small><b>${esc(String(v))}</b></div>`).join('');
-  $('#limitations').innerHTML=STRUCTURE.limitations.map(x=>`<div class="limit-item">${esc(x)}</div>`).join('');
-}
-async function playLoop(){const nodes=$$('.pipe-node');for(const n of nodes){n.classList.add('active');n.scrollIntoView({block:'nearest',behavior:'smooth'});$('#pipelineNote').textContent=n.querySelector('p').textContent;await sleep(430);n.classList.remove('active')}$('#pipelineNote').textContent='一周完了。実機ではこの流れがNode/Pythonの常駐プロセスとして自動で回ります。'}
-function openDrawer(){document.body.style.overflow='hidden';$('#drawer').classList.add('open');$('#drawerMask').classList.add('show');$('#drawer').setAttribute('aria-hidden','false')}
-function closeDrawer(){document.body.style.overflow='';$('#drawer').classList.remove('open');$('#drawerMask').classList.remove('show');$('#drawer').setAttribute('aria-hidden','true')}
-$('#send').onclick=()=>ask($('#chatInput').value);$('#chatInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();ask(e.currentTarget.value)}});$$('[data-q]').forEach(b=>b.onclick=()=>ask(b.dataset.q));$('#forceProactive').onclick=()=>offerProactive(true);$('#openStructure').onclick=openDrawer;$('#closeStructure').onclick=closeDrawer;$('#drawerMask').onclick=closeDrawer;$('#playLoop').onclick=playLoop;document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDrawer()});
+$('#send').onclick=()=>ask($('#chatInput').value);
+$('#chatInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();ask(e.currentTarget.value)}});
+$$('[data-q]').forEach(b=>b.onclick=()=>ask(b.dataset.q));
+$('#forceProactive').onclick=()=>offerProactive(true);
 load().catch(e=>{console.error(e);$('#runtimeState').textContent='load error';msg('fairy','公開デモのデータ読込に失敗しました。'+e.message,{badges:[{kind:'demo',text:'ERROR'}]})});
