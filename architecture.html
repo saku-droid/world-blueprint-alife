@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#07100c">
+  <title>内部設計図 — World Blueprint</title>
+  <link rel="stylesheet" href="architecture.css">
+</head>
+<body>
+  <div class="concept">これは想定です <span>PUBLIC VISUALIZATION</span></div>
+  <header class="arch-top">
+    <a class="back" href="index.html">← 会話へ戻る</a>
+    <div class="arch-brand"><b>世界の設計図</b><small>LIVE WIRING / ACTUAL-CODE RECONSTRUCTION</small></div>
+    <div class="live-chip"><i></i><span id="headState">loading</span><b id="headGen">G—</b></div>
+  </header>
+
+  <main>
+    <section class="intro">
+      <div>
+        <p class="eyebrow">THE THING BEHIND THE CHAT</p>
+        <h1>会話の裏で、<br><span>何が勝手に回っているか。</span></h1>
+      </div>
+      <p>上段は人が話した時の信号。下段は、人が黙っていてもファイル・影・世代・台帳から自律的に回る信号。ノードを押すと実ファイルと関数を確認できます。</p>
+    </section>
+
+    <section class="controls">
+      <button id="playHuman">人が話した時の線</button>
+      <button id="playAuto" class="gold">自律ループを再生</button>
+      <button id="playAll" class="jade">全体を流す</button>
+      <button id="toggleWalls">8枚の壁を止める</button>
+      <span id="flowStatus">READY</span>
+    </section>
+
+    <section class="board-shell">
+      <div class="mobile-hint">← スマホは左右にスワイプして配線を追えます →</div>
+      <div class="board-scroll" id="boardScroll">
+        <div class="board" id="board">
+          <svg viewBox="0 0 1500 820" preserveAspectRatio="none" aria-hidden="true">
+            <path id="h1" class="wire human" d="M75 170 C150 170 165 170 230 170"/>
+            <path id="h2" class="wire human" d="M350 170 C420 170 425 170 500 170"/>
+            <path id="h3" class="wire human" d="M620 170 C700 170 705 170 780 170"/>
+            <path id="h4" class="wire human" d="M900 170 C980 170 985 170 1055 170"/>
+            <path id="h5" class="wire human" d="M1175 170 C1260 170 1280 170 1370 170"/>
+            <path id="a1" class="wire auto" d="M100 565 C180 565 185 565 260 565"/>
+            <path id="a2" class="wire auto" d="M380 565 C455 565 465 565 535 565"/>
+            <path id="a3" class="wire auto" d="M655 565 C735 565 740 565 815 565"/>
+            <path id="a4" class="wire auto" d="M935 565 C1005 565 1010 565 1080 565"/>
+            <path id="a5" class="wire auto" d="M1200 565 C1280 565 1300 565 1380 565"/>
+            <path id="a6" class="wire auto" d="M1140 615 C1140 700 980 735 890 675"/>
+            <path id="a7" class="wire auto" d="M820 645 C720 710 600 705 570 625"/>
+            <path id="a8" class="wire auto" d="M600 535 C630 420 790 405 845 480"/>
+            <path id="a9" class="wire auto" d="M890 500 C905 380 1050 350 1115 425"/>
+            <path id="a10" class="wire auto" d="M1170 455 C1250 395 1375 390 1405 280"/>
+            <path id="s1" class="wire safe" d="M900 205 C930 250 1010 270 1070 285"/>
+            <path id="s2" class="wire blocked" d="M1180 305 C1260 305 1320 340 1385 395"/>
+            <path id="b1" class="wire bridge" d="M290 215 C315 345 300 445 320 515"/>
+            <path id="b2" class="wire bridge" d="M560 215 C550 325 565 425 590 515"/>
+          </svg>
+
+          <div class="lane-label human-label">HUMAN EVENT / 人が話した時だけ</div>
+          <div class="lane-label auto-label">AUTONOMOUS LOOP / 人が黙っていても回る</div>
+
+          <button class="node human-node" style="left:5%;top:14%" data-id="chat"><span>ENTRY</span><b>CHAT</b><small>人の発話</small></button>
+          <button class="node human-node" style="left:19%;top:14%" data-id="repository"><span>RETRIEVAL</span><b>REPOSITORY</b><small>ファイル取得</small></button>
+          <button class="node human-node" style="left:37%;top:14%" data-id="context"><span>ASSEMBLY</span><b>CONTEXT</b><small>事実/履歴/境界</small></button>
+          <button class="node human-node" style="left:55%;top:14%" data-id="dialogue"><span>EVENT DRIVEN</span><b>NATIVE DIALOGUE</b><small>メッセージ時のみ</small></button>
+          <button class="node core" style="left:73%;top:14%" data-id="mind"><span>INDIVIDUAL BOUNDARY</span><b>NATIVE MIND</b><small>ChronicleRing</small></button>
+          <button class="node human-node" style="left:92%;top:14%" data-id="response"><span>OUTPUT</span><b>RESPONSE</b><small>会話へ戻る</small></button>
+
+          <button class="node auto-node" style="left:7%;top:65%" data-id="files"><span>SOURCE</span><b>APP FILES</b><small>コード/ログ/履歴</small></button>
+          <button class="node auto-node" style="left:21%;top:65%" data-id="vault"><span>1F</span><b>VAULT CORE</b><small>index.mjs / cli.mjs</small></button>
+          <button class="node auto-node" style="left:39%;top:65%" data-id="fairy"><span>2F</span><b>FAIRY CORE</b><small>score / ledger / tripwire</small></button>
+          <button class="node auto-node" style="left:57%;top:65%" data-id="admin"><span>3F</span><b>ADMIN / DRIVE</b><small>課題選択・司令塔</small></button>
+          <button class="node auto-node" style="left:75%;top:65%" data-id="supervisor"><span>4.5F</span><b>SUPERVISOR</b><small>影worker監督</small></button>
+          <button class="node auto-node" style="left:92%;top:65%" data-id="phantom"><span>SHADOW</span><b>PHANTOM</b><small>12 gen / batch</small></button>
+
+          <button class="node organ" style="left:57%;top:82%" data-id="ledger"><span>MEMORY</span><b>LEDGER</b><small>追記台帳</small></button>
+          <button class="node organ" style="left:75%;top:82%" data-id="evolution"><span>CELL CYCLE</span><b>EVOLUTION</b><small>適応→淘汰→継承</small></button>
+          <button class="node organ" style="left:92%;top:82%" data-id="worldline"><span>COUNTERFACTUAL</span><b>WORLDLINES</b><small>6分岐 / containment</small></button>
+
+          <button class="node safety" style="left:73%;top:35%" data-id="gate"><span>CONTROL</span><b>INFERENCE GATE</b><small>起動前検査</small></button>
+          <button class="node blocked-node" style="left:92%;top:45%" data-id="reality"><span>WRITE PATH</span><b>REALITY GATE</b><small>PUBLIC: BLOCKED</small></button>
+
+          <div class="wall-ring" id="wallRing" aria-label="8枚の壁"></div>
+          <div class="proactive" data-id="proactive"><span>AUTONOMOUS VOICE</span><b>proactiveThoughts()</b><small>必要なら向こうから話す</small></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="below-grid">
+      <article class="inspect panel">
+        <div class="panel-head"><b>SELECTED NODE</b><span id="inspectType">tap a node</span></div>
+        <h2 id="inspectTitle">配線を触ってみる</h2>
+        <p id="inspectText">ノードを押すと、実ファイル・関数・役割をここに表示します。</p>
+        <div class="file-box" id="inspectFile">—</div>
+      </article>
+      <article class="runtime panel">
+        <div class="panel-head"><b>ACTUAL RECHECK</b><span>isolated copy</span></div>
+        <div class="metric-grid" id="recheck"></div>
+      </article>
+      <article class="limits panel">
+        <div class="panel-head"><b>NOT WIRED YET</b><span>そのまま使えない所</span></div>
+        <div id="limitations"></div>
+      </article>
+    </section>
+  </main>
+
+  <footer><span>WORLD BLUEPRINT / INTERNAL WIRING</span><b>発見を自動化するのではない。発見者を進化させる。</b><a href="index.html">会話へ戻る</a></footer>
+  <script src="architecture.js"></script>
+</body>
+</html>
