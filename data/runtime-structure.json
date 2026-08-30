@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "source": "actual-code-reinspection-2026-08-30",
+  "publicSafe": true,
+  "components": [
+    {
+      "id": "admin",
+      "file": "tools/auto/admin.mjs",
+      "label": "人が見る面 / ADMIN",
+      "functions": ["tick", "proactiveThoughts", "offerProactiveThought", "answerShadow", "streamShadow"],
+      "cadence": "UI tick every 2s",
+      "does": "ローカル状態を読み、会話UI・自発発話・SSE表示を統合する。POSTはlocalhost+画面内tokenで保護。"
+    },
+    {
+      "id": "supervisor",
+      "file": "tools/auto/shadow-supervisor.mjs",
+      "label": "影の監督 / SUPERVISOR",
+      "functions": ["inspectShadowWorker", "createShadowSupervisor.check", "start"],
+      "cadence": "health check every 1s",
+      "does": "PIDだけでなくinstanceId・開始時刻・heartbeatを照合し、影workerが無ければ起動、staleなら安全に回収する。"
+    },
+    {
+      "id": "phantom",
+      "file": "fairy-py/world/phantom_loop.py",
+      "label": "影の連続世代 / PHANTOM",
+      "functions": ["run_loop", "ContinuousWorld.advance", "SingleWriter._heartbeat_loop"],
+      "cadence": "default 12 generations / batch, heartbeat 2s",
+      "does": "本番記録を読み、独立時計で世代交代を連続実行。提案・評価・適応・台帳・statusを更新する。"
+    },
+    {
+      "id": "evolution",
+      "file": "fairy-py/world/phantom_loop.py",
+      "label": "適応・淘汰・継承",
+      "functions": ["world.advance", "behavior_expansion_proposal", "unseen_cause_proposal", "evolution_representation_proposal", "ring.adapt"],
+      "cadence": "per batch",
+      "does": "世代評価→選択→継承→提案生成→人の決定読込→ChronicleRing適応を順に行う。"
+    },
+    {
+      "id": "dialogue",
+      "file": "fairy-py/world/native_dialogue.py",
+      "label": "対話入口 / NATIVE DIALOGUE",
+      "functions": ["main", "NativeMind.converse"],
+      "cadence": "only when a message arrives",
+      "does": "発話が来た時だけNativeMindへ渡す。コード質問時はローカルのコード量だけを測り、本文やパスを会話へ流さない。"
+    },
+    {
+      "id": "mind",
+      "file": "fairy-py/fairy/native_mind.py",
+      "label": "統合人格 / NATIVE MIND",
+      "functions": ["interpret", "recall", "_compose", "converse", "report"],
+      "cadence": "event driven",
+      "does": "観測→解釈→想起→統合→発話を一周し、全段階を追記台帳へ残す。現在はexternalModelUsed=false。"
+    },
+    {
+      "id": "ledger",
+      "file": "fairy/ledger.mjs / fairy-py/fairy/ledger.py",
+      "label": "追記台帳 / LEDGER",
+      "functions": ["append", "verify", "head"],
+      "cadence": "event driven",
+      "does": "会話・経験・提案・世代結果を追記で保持。精霊同士を直接呼ぶより台帳経由で連結する設計。"
+    },
+    {
+      "id": "gate",
+      "file": "fairy-py/fairy/local_inference_substrate.py",
+      "label": "推論器ゲート / LOCAL INFERENCE",
+      "functions": ["assess_local_inference_substrate", "LocalInferenceSubstrateGate.report"],
+      "cadence": "on change / before activation",
+      "does": "交換可能なローカル推論器を起動せず検査する。現在の言語器官はnative-symbolic、候補providerはbitnet.cppのみ。"
+    }
+  ],
+  "actualRecheck": {
+    "isolatedCopy": true,
+    "adminServerStarted": true,
+    "shadowWorkerSpawned": true,
+    "generationObservedBefore": 77532,
+    "generationObservedAfter": 77544,
+    "nativeDialogueAnswered": true,
+    "externalModelUsed": false
+  },
+  "limitations": [
+    "GitHub PagesではNode/Python常駐プロセスを実行できないため、公開版の自動循環は可視化・再生のみ。",
+    "実機admin.mjsは127.0.0.1限定かつPOSTをlocal origin+tokenで保護しているため、そのままスマホから直接接続できない。",
+    "現在のNativeMindは実LLMではなくnative-symbolic。外部LLMは未接続。",
+    "local_inference_substrate.pyはbitnet.cpp候補の安全ゲートだけで、モデル自体を起動しない。",
+    "隔離Linux環境ではweb/build.mjsのWindows区切り文字依存と、Node 22のML-DSA-87未対応で一部テストが失敗した。",
+    "全テスト走査ではfairy-directionの下限検査も現スナップショットで6/22となり失敗したため、そこは実機側で要確認。"
+  ]
+}
