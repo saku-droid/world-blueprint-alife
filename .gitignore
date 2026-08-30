@@ -1,0 +1,6 @@
+*.pem
+*.key
+private-key*
+secrets/
+.env
+__pycache__/
