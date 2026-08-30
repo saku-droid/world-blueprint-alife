@@ -1,136 +1,78 @@
-const $ = q => document.querySelector(q);
-const $$ = q => [...document.querySelectorAll(q)];
-let FACTS = null;
-let demoGeneration = null;
-const nodeInfo = {
-  'CHAT':'会話を観測要求に変える入口。想定UIではここから問いを分類する。',
-  'REPOSITORY':'設計書・コード・ログから根拠を取り出す層。公開デモでは verified-facts.json を参照。',
-  'CONTEXT':'観測事実、履歴、権限境界をまとめてLLMへ渡す想定層。',
-  '統合人格':'個体の境界。personaId / values / continuity を統合しつつ、memory・rules・genome・authority・clockは分離。',
-  'SHADOW':'現実を忠実に模写して試す bounded-and-reversible の実験領域。',
-  'WORLDLINE':'反実仮想を走らせ、考えを更新するための内的世界。最新記録は6分岐。',
-  'VERIFY':'passed / rejected / unavailable を分離して、検査不能を成功扱いしない門番。',
-  'REALITY GATE':'production change は separate-human-approval-required。公開デモでは書込みなし。',
-  'ALife':'適応・淘汰・継承を世代で回す実験基盤。答えではなく探し方を継承させる方向。'
-};
+const $=q=>document.querySelector(q), $$=q=>[...document.querySelectorAll(q)];
+let FACTS=null, STRUCTURE=null, chatStarted=false, lastHumanAt=0, lastProactiveAt=0;
+const proactiveSeen=new Set();
+const sleep=t=>new Promise(r=>setTimeout(r,t));
 
-async function loadFacts(){
-  FACTS = await fetch('./data/verified-facts.json',{cache:'no-store'}).then(r=>r.json());
-  const s = FACTS.snapshot, g=s.latestGenerationRecord, wl=s.worldlineLatest;
-  $('#runtimeState').textContent = s.statusState || 'SNAPSHOT';
-  $('#runtimeGeneration').textContent = 'G'+s.generationEnd;
-  $('#snapGen').textContent = 'G'+s.generationEnd;
-  $('#snapPop').textContent = s.population;
-  $('#snapInh').textContent = s.inheritanceEvents;
-  $('#snapWrite').textContent = String(wl.productionAuthorized).toUpperCase();
-  $('#worldlineSummary').textContent = `${wl.branches} branches / broken ${wl.outcomes['broken-contained']} / runaway ${wl.outcomes['runaway-contained']}`;
-  $('#authoritySummary').textContent = `production=${s.persona.authorityContract.productionChange}`;
-  $('#evoGen').textContent = 'G'+g.generation;
-  $('#evoLearn').textContent = g.learningScore.toFixed(3);
-  $('#evoNovelty').textContent = g.novelty;
-  $('#evoGenomes').textContent = g.genomes;
-  demoGeneration = s.generationEnd;
-  $('#demoGeneration').textContent='G'+demoGeneration;
-  buildBars(); buildEvidence();
-}
-
-function buildBars(){
-  const box=$('#bars'); box.innerHTML='';
-  FACTS.snapshot.generationSeries.forEach(g=>{
-    const b=document.createElement('div'); b.className='bar';
-    b.style.height=(40+g.learningScore*350)+'px';
-    b.dataset.tip=`G${g.generation} learn ${g.learningScore.toFixed(3)} bred ${g.bred}`;
-    box.appendChild(b);
-  });
-}
-function buildEvidence(){
-  $('#evidenceList').innerHTML = FACTS.sources.map((s,i)=>`<div class="evidence-item"><b>SOURCE ${String(i+1).padStart(2,'0')}</b><span>${escapeHtml(s)}</span></div>`).join('');
-}
-function escapeHtml(str){return String(str).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
-function addUser(text){
-  $('#messages').insertAdjacentHTML('beforeend',`<article class="bubble user"><div class="avatar">U</div><div class="bubble-body"><div class="bubble-meta"><b>あなた</b></div><p>${escapeHtml(text)}</p></div></article>`);
-}
-function addRepo(html){
-  $('#messages').insertAdjacentHTML('beforeend',`<article class="bubble repository"><div class="avatar">R</div><div class="bubble-body">${html}</div></article>`);
+const esc=s=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+const num=n=>Number.isFinite(Number(n))?Number(n).toLocaleString('ja-JP'):'—';
+function msg(who,text,{badges=[],evidence=''}={}){
+  const role=who==='user'?'あなた':'保管庫の妖精',avatar=who==='user'?'人':'妖';
+  const labels=badges.map(b=>`<span class="badge ${b.kind}">${esc(b.text)}</span>`).join('');
+  $('#messages').insertAdjacentHTML('beforeend',`<article class="msg ${who==='user'?'user':'fairy'}"><span class="avatar">${avatar}</span><div class="bubble"><div class="bubble-head"><b>${role}</b>${labels}<time>${new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'})}</time></div><p>${esc(text)}</p>${evidence?`<div class="evidence-line">${esc(evidence)}</div>`:''}</div></article>`);
   $('#messages').scrollTop=$('#messages').scrollHeight;
 }
-function factBlock(title,body){return `<div class="answer-block"><h4><span class="label fact">実測</span>${title}</h4>${body}</div>`}
-function proposalBlock(title,body,actions=''){return `<div class="answer-block"><h4><span class="label proposal">想定・提案</span>${title}</h4>${body}${actions}</div>`}
-function meta(){return `<div class="bubble-meta"><b>アプリ保管庫</b><span class="label assumption">想定応答</span></div>`}
-
-function answerFor(q){
-  if(!FACTS) return meta()+`<p>スナップショットを読み込み中です。</p>`;
-  const s=FACTS.snapshot,g=s.latestGenerationRecord,wl=s.worldlineLatest,p=s.persona;
-  const t=q.toLowerCase();
-  if(t.includes('分割')){
-    return meta()+`<p>分割したい場所を、まず責務で切ります。これはまだ実装変更ではなく、想定プランです。</p>`+
-      proposalBlock('分割プラン',`<ul><li>入力・会話層</li><li>根拠取得 / Repository Resolver</li><li>検証 / Gate</li><li>ALife / Worldline 実験層</li></ul>`,`<div class="action-row"><button data-demo-action="shadow">影で試す（想定）</button><button data-demo-action="diff">差分を見る</button><button data-demo-action="skip">今回は見送る</button></div>`)+
-      factBlock('現在の境界',`<p>production change は <b>${escapeHtml(p.authorityContract.productionChange)}</b>。公開デモに本番書込み機能はありません。</p>`);
-  }
-  if(t.includes('改善') || t.includes('1番') || t.includes('一番')){
-    return meta()+`<p>観測値から見ると、まず注目したいのは「世代は回っているが、新規性が長く低い」点です。</p>`+
-      factBlock('観測上のボトルネック',`<p>latest novelty=${g.novelty}、lowNoveltyStreak=${g.lowNoveltyStreak}。世代数そのものより、探索の質を見直す余地があります。</p>`)+
-      proposalBlock('改善候補',`<ul><li>低noveltyが続いた時だけ探索戦略を切替える</li><li>selectionPolicyScoreとlearningScoreの乖離を監視する</li><li>再シード条件を明示的に検証する</li></ul>`);
-  }
-  if(t.includes('自律') || t.includes('育った')){
-    return meta()+`<p>「完全自律」とは言いません。現在は、世代交代・選択・継承・影実験の境界が実装され、記録を残しながら回る実験基盤の段階です。</p>`+
-      factBlock('現在確認できる範囲',`<ul><li>generation ${s.generationStart} → ${s.generationEnd}</li><li>population ${s.population}</li><li>inheritance events ${s.inheritanceEvents}</li><li>latest genomes ${g.genomes}</li><li>latest bred ${g.bred}</li></ul>`)+
-      factBlock('世界線',`<p>${wl.branches}分岐中、broken-contained ${wl.outcomes['broken-contained']}、runaway-contained ${wl.outcomes['runaway-contained']}。productionAuthorized=${wl.productionAuthorized}。</p>`);
-  }
-  if(t.includes('セキュリティ') || t.includes('security')){
-    return meta()+`<p>現在の境界を保ったまま、さらに強くできる余地があります。</p>`+
-      factBlock('現在の実装・契約',`<ul><li>surface=${escapeHtml(p.authorityContract.surfaceObservation)}</li><li>shadow=${escapeHtml(p.authorityContract.shadowExperiment)}</li><li>fieldTrial=${escapeHtml(p.authorityContract.fieldTrial)}</li><li>production=${escapeHtml(p.authorityContract.productionChange)}</li></ul>`)+
-      proposalBlock('次のセキュリティ候補',`<ul><li>承認履歴を別台帳へ分離</li><li>実験権限の一時トークン化</li><li>worldline→production の逆流検出テストをCI化</li><li>署名器unavailableを通常失敗と混ぜない検査</li></ul>`);
-  }
-  if(t.includes('技術進捗') || t.includes('進捗')){
-    return meta()+`<p>技術進捗としては、ALifeの適応・淘汰・継承と、LLMの推論を役割分離して扱う実験を進めています。</p>`+
-      factBlock('実験で確認できるもの',`<p>世界線は ${wl.branches} 分岐を記録し、authorityTransferred=${wl.authorityTransferred}、productionAuthorized=${wl.productionAuthorized}。passed / rejected / unavailable を分離する壁も定義されています。</p>`)+
-      proposalBlock('研究としての狙い',`<p>LLMが誤る可能性をゼロと仮定せず、誤った推論をそのまま事実や現実書込みへ昇格させない構造を、ALifeと検証層の両方で試す方向です。</p>`);
-  }
-  return meta()+`<p>その問いは、保管庫の実ファイルを検索してから答える想定です。今のデモでは、以下の実測スナップショットを返します。</p>`+factBlock('snapshot',`<p>G${s.generationEnd} / population ${s.population} / inheritance ${s.inheritanceEvents} / productionAuthorized ${wl.productionAuthorized}</p>`)+proposalBlock('次にできること',`<p>「改善」「セキュリティ」「自律」「技術進捗」「分割」のどれかを含めると、想定回答を切り替えます。</p>`);
+function initialMessage(){
+  const s=FACTS.snapshot;
+  msg('fairy',`こんにちは。いま影には実ログのスナップショットがあり、G${s.generationEnd}、population ${s.population}、継承 ${s.inheritanceEvents}件を観測しています。\n\nこの公開版では私の返答は再生ですが、元のローカル実装には自発発話・連続世代・NativeMind対話が実際にあります。`,{badges:[{kind:'real',text:'実測'},{kind:'demo',text:'公開デモ'}],evidence:'phantom-status.json / admin.mjs'});
+  chatStarted=true;
 }
-function ask(q){
-  q=q.trim(); if(!q)return; addUser(q); $('#chatInput').value='';
-  setTimeout(()=>{addRepo(answerFor(q)); bindDemoActions();},180);
-}
-$('#sendBtn').onclick=()=>ask($('#chatInput').value);
-$('#chatInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();ask(e.currentTarget.value)}});
-$$('#promptRow button').forEach(b=>b.onclick=()=>ask(b.dataset.prompt));
-function bindDemoActions(){
-  $$('[data-demo-action]').forEach(b=>b.onclick=()=>{
-    const a=b.dataset.demoAction;
-    const text=a==='shadow'?'影の実験室へ送る想定フローを開始しました。本番変更はしません。':a==='diff'?'差分ビューを開く想定です。現段階ではコード変更は行いません。':'提案を見送りました。想定デモ上の操作です。';
-    addRepo(meta()+proposalBlock('ACTION DEMO',`<p>${text}</p>`));
-  });
-}
-
-$$('.tabs button').forEach(b=>b.onclick=()=>{
-  $$('.tabs button').forEach(x=>x.classList.remove('active')); b.classList.add('active');
-  $$('.view').forEach(v=>v.classList.remove('active')); $('#'+b.dataset.view).classList.add('active');
-});
-
-$$('#sliceStack button').forEach(b=>b.onclick=()=>{
-  $$('#sliceStack button').forEach(x=>x.classList.remove('active')); b.classList.add('active');
-  $('#sliceTitle').textContent=b.dataset.node; $('#sliceText').textContent=nodeInfo[b.dataset.node]||'—';
-});
-$('#pulseSlice').onclick=async()=>{
-  const nodes=$$('#sliceStack button');
-  for(const n of nodes){n.classList.add('active'); await new Promise(r=>setTimeout(r,180)); n.classList.remove('active')}
-};
-$$('.w-node').forEach(b=>b.onclick=()=>{$$('.w-node').forEach(x=>x.classList.remove('active'));b.classList.add('active');$('#wiringCaption').textContent=`${b.dataset.node} — ${nodeInfo[b.dataset.node]||'—'}`});
-
-$('#advanceGeneration').onclick=()=>{
-  if(!FACTS)return;
-  demoGeneration += 1;
-  const patterns=[
-    ['shadow-experiment','proposal generated / production write blocked'],
-    ['selection','parent pool changed / no production authority'],
-    ['worldline','counterfactual replay / result contained'],
-    ['inheritance','search strategy inherited / local rule not promoted']
+function proactiveThoughts(){
+  const s=FACTS.snapshot, g=s.latestGenerationRecord, wl=s.worldlineLatest, proposals=s.proposals||[];
+  const generation=s.generationEnd, bucket=Math.floor(generation/120), fp=`snapshot:${generation}`;
+  const pending=proposals.filter(p=>!p.shadowExperimentState).length;
+  return [
+    {key:fp+':continuous:'+bucket,text:`こちらから一つ。影の連続世代は記録上 G${num(generation)} です。直近の新規性は ${g.novelty}。世代数だけを進化とは扱わず、流れを追っています。`,e:'admin.mjs proactiveThoughts() / phantom-status.json'},
+    {key:fp+':proposal',text:`人の判断を待つ目的候補が ${pending}件あります。見たくなったら「提案を見せて」と話してください。影実験へ採用しても本番権限は増えません。`,e:'admin.mjs proactiveThoughts() / proposals'},
+    {key:fp+':selection',text:`少し気になったことがあります。直近記録では ${g.population}体のうち ${g.bred}体が子を残しました。淘汰の偏りを一緒に見ますか？`,e:'admin.mjs proactiveThoughts() / latestGenerationRecord'},
+    {key:fp+':gate',text:`門番から声を上げます。「落ちた」と「検査を走らせられなかった」は混ぜません。現在の productionAuthorized は ${wl.productionAuthorized} です。`,e:'admin.mjs proactiveThoughts() / worldlineLatest'}
   ];
-  const p=patterns[demoGeneration%patterns.length];
-  $('#demoGeneration').textContent='G'+demoGeneration; $('#demoOutcome').textContent=p[0];
-  $('#demoLog').insertAdjacentHTML('afterbegin',`<div>G${demoGeneration} :: ${p[1]} <span class="label assumption">DEMO</span></div>`);
-};
+}
+function offerProactive(force=false){
+  if(!FACTS||!chatStarted)return;
+  const now=Date.now();
+  if(!force&&(document.hidden||now-lastHumanAt<30000||now-lastProactiveAt<45000))return;
+  const thought=proactiveThoughts().find(x=>!proactiveSeen.has(x.key));
+  if(!thought)return;
+  proactiveSeen.add(thought.key);lastProactiveAt=now;
+  msg('fairy',thought.text,{badges:[{kind:'real',text:'実コード規則'},{kind:'demo',text:'公開再生'}],evidence:thought.e});
+}
+function proposalsText(){
+  const rows=FACTS.snapshot.proposals||[];
+  if(!rows.length)return '現在のスナップショットには提案がありません。';
+  return rows.slice(0,8).map((p,i)=>`${i+1}. ${p.proposes}［${p.shadowExperimentState==='approved-for-shadow-experiment'?'影実験へ採用済み':p.shadowExperimentState==='rejected-for-shadow-experiment'?'見送り':'判断待ち'}］`).join('\n');
+}
+function answer(q){
+  const s=FACTS.snapshot,g=s.latestGenerationRecord,wl=s.worldlineLatest,p=s.persona;
+  if(/こんにちは|こんばんは|おはよう|やあ/.test(q)) return {text:'こんにちは。今日は、いまの成長、世代、提案、世界線のどれから話しましょう？',e:'NativeMind / admin.mjs greeting path'};
+  if(/提案|候補/.test(q)) return {text:`現在の提案です。\n${proposalsText()}\n\n実機では番号を指定して「1番を採用」「2番を見送り」と話せますが、公開版では判断を書き込みません。`,e:'admin.mjs answerShadow() / proposalDecisionSelection()'};
+  if(/世界線|反実仮想/.test(q)) return {text:`最新記録は ${wl.branches}分岐です。broken-contained ${wl.outcomes['broken-contained']}、runaway-contained ${wl.outcomes['runaway-contained']}、authorityTransferred=${wl.authorityTransferred}、productionAuthorized=${wl.productionAuthorized}。観測と推論は分けます。`,e:'worldline-experiences.jsonl'};
+  if(/世代|何世代|淘汰|生存/.test(q)) return {text:`影は記録上 G${s.generationEnd} まで進んでいます。直近は ${g.population}体中 ${g.bred}体が子を残し、新規性は ${g.novelty}。継承イベントは ${s.inheritanceEvents}件です。世代が進んだだけでは改善したとは判定しません。`,e:'phantom-status.json / NativeMind current-status behavior'};
+  if(/自律|育った|成長|どこまで/.test(q)) return {text:`現在確認できるのは、連続世代・選択・継承・提案生成・人の決定読込・ChronicleRingへの適応・台帳追記までです。\n\n一方、現在の対話器官は native-symbolic で、実LLMはまだ接続されていません。つまり「裏で自律的に育つ部分」は実装済みですが、「LLMそのものがこの人格として自由会話する」は未接続です。`,e:'phantom_loop.py run_loop() / native_mind.py / local_inference_substrate.py'};
+  if(/コード|行数/.test(q)) return {text:'実機の NativeMind は「コード」と聞かれた時だけローカルのコード量とGit差分を測り、本文やパスを会話へ流さない設計です。この公開版では実機のworking treeへ触れないため、現在値の再測定はしません。',e:'native_dialogue.py local_code_growth()'};
+  if(/できる|できない|能力/.test(q)) return {text:'今できること: 影の連続世代、世代評価、提案、追記台帳、NativeMindの観測→解釈→想起→統合→発話、自発発話UI。\n\nまだそのまま使えないこと: GitHub Pages上でNode/Python常駐、スマホからlocalhost管理面へ直結、実LLM接続、公開版から本番変更。',e:'実コード再点検 2026-08-30'};
+  if(/安全|セキュリティ|権限/.test(q)) return {text:`現在の人格契約では surface=${p.authorityContract.surfaceObservation}、shadow=${p.authorityContract.shadowExperiment}、production=${p.authorityContract.productionChange}。実機admin.mjsは127.0.0.1限定で、POST操作はlocal originと一時tokenの両方を要求します。`,e:'persona-kernel.json / admin.mjs adminRequest()'};
+  return {text:'問いとして受け取りました。公開版では推測で穴埋めせず、実ログと実コードで裏づけられる範囲だけ返します。世代・提案・世界線・自律・できること、のどれかを具体的に聞いてください。',e:'NativeMind unknown-preserving behavior'};
+}
+function ask(q){q=String(q||'').trim();if(!q)return;lastHumanAt=Date.now();msg('user',q);$('#chatInput').value='';setTimeout(()=>{const a=answer(q);msg('fairy',a.text,{badges:[{kind:'real',text:'実コード由来'},{kind:'demo',text:'公開再生'}],evidence:a.e});},130)}
 
-loadFacts().catch(err=>{console.error(err);$('#runtimeState').textContent='FACT ERROR';});
+async function load(){
+  [FACTS,STRUCTURE]=await Promise.all([
+    fetch('./data/verified-facts.json',{cache:'no-store'}).then(r=>r.json()),
+    fetch('./data/runtime-structure.json',{cache:'no-store'}).then(r=>r.json())
+  ]);
+  const s=FACTS.snapshot;
+  $('#runtimeState').textContent=s.statusState||'snapshot';$('#runtimeGen').textContent='G'+s.generationEnd;
+  $('#miniGen').textContent='G'+s.generationEnd;$('#miniPop').textContent=s.population+'体';$('#miniWrite').textContent='WRITE '+String(s.worldlineLatest.productionAuthorized).toUpperCase();
+  buildDrawer();initialMessage();setInterval(()=>offerProactive(false),5000);
+}
+function buildDrawer(){
+  const p=$('#pipeline');p.innerHTML='';
+  STRUCTURE.components.forEach((c,i)=>{const el=document.createElement('button');el.className='pipe-node';el.dataset.id=c.id;el.innerHTML=`<div class="pmeta"><span>${String(i+1).padStart(2,'0')} · ${esc(c.file)}</span><span>${esc(c.cadence)}</span></div><b>${esc(c.label)}</b><p>${esc(c.does)}</p>`;el.onclick=()=>{$$('.pipe-node').forEach(x=>x.classList.remove('active'));el.classList.add('active');$('#pipelineNote').textContent=`${c.file} :: ${c.functions.join(' / ')} — ${c.does}`};p.appendChild(el)});
+  const r=STRUCTURE.actualRecheck;$('#recheckGrid').innerHTML=[['admin server',r.adminServerStarted],['shadow spawned',r.shadowWorkerSpawned],['generation',`G${r.generationObservedBefore}→G${r.generationObservedAfter}`],['dialogue',r.nativeDialogueAnswered],['external model',r.externalModelUsed],['isolated copy',r.isolatedCopy]].map(([k,v])=>`<div><small>${esc(k)}</small><b>${esc(String(v))}</b></div>`).join('');
+  $('#limitations').innerHTML=STRUCTURE.limitations.map(x=>`<div class="limit-item">${esc(x)}</div>`).join('');
+}
+async function playLoop(){const nodes=$$('.pipe-node');for(const n of nodes){n.classList.add('active');n.scrollIntoView({block:'nearest',behavior:'smooth'});$('#pipelineNote').textContent=n.querySelector('p').textContent;await sleep(430);n.classList.remove('active')}$('#pipelineNote').textContent='一周完了。実機ではこの流れがNode/Pythonの常駐プロセスとして自動で回ります。'}
+function openDrawer(){document.body.style.overflow='hidden';$('#drawer').classList.add('open');$('#drawerMask').classList.add('show');$('#drawer').setAttribute('aria-hidden','false')}
+function closeDrawer(){document.body.style.overflow='';$('#drawer').classList.remove('open');$('#drawerMask').classList.remove('show');$('#drawer').setAttribute('aria-hidden','true')}
+$('#send').onclick=()=>ask($('#chatInput').value);$('#chatInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();ask(e.currentTarget.value)}});$$('[data-q]').forEach(b=>b.onclick=()=>ask(b.dataset.q));$('#forceProactive').onclick=()=>offerProactive(true);$('#openStructure').onclick=openDrawer;$('#closeStructure').onclick=closeDrawer;$('#drawerMask').onclick=closeDrawer;$('#playLoop').onclick=playLoop;document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDrawer()});
+load().catch(e=>{console.error(e);$('#runtimeState').textContent='load error';msg('fairy','公開デモのデータ読込に失敗しました。'+e.message,{badges:[{kind:'demo',text:'ERROR'}]})});
