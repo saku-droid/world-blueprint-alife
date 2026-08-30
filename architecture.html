@@ -8,108 +8,105 @@
   <link rel="stylesheet" href="architecture.css">
 </head>
 <body>
-  <div class="concept">これは想定です <span>ACTUAL-CODE MAPPING</span></div>
+  <div class="concept">これは想定です <span>PUBLIC VISUALIZATION</span></div>
   <header class="arch-top">
     <a class="back" href="index.html">← 会話へ戻る</a>
-    <div class="arch-brand"><b>世界の設計図</b><small>HOW THE APP GROWS & TALKS</small></div>
+    <div class="arch-brand"><b>世界の設計図</b><small>LIVE WIRING / ACTUAL-CODE RECONSTRUCTION</small></div>
     <div class="live-chip"><i></i><span id="headState">loading</span><b id="headGen">G—</b></div>
   </header>
 
   <main>
     <section class="intro">
       <div>
-        <p class="eyebrow">FIRST, JUST THIS</p>
-        <h1>この子は、<br><span>ファイルを見て、勝手に育って、必要なら話す。</span></h1>
+        <p class="eyebrow">THE THING BEHIND THE CHAT</p>
+        <h1>会話の裏で、<br><span>何が勝手に回っているか。</span></h1>
       </div>
-      <p>最初は4つだけ見ればOK。細かい器官は「自律して育つ核」を押すと開きます。実コード名は下の詳細欄で確認できます。</p>
+      <p>上段は人が話した時の信号。下段は、人が黙っていてもファイル・影・世代・台帳から自律的に回る信号。ノードを押すと実ファイルと関数を確認できます。</p>
     </section>
 
-    <section class="simple-controls">
-      <button id="playAuto">① 自律ループを見る</button>
-      <button id="playTalk">② 話す流れを見る</button>
-      <button id="playWrite">③ 本番変更を見る</button>
+    <section class="controls">
+      <button id="playHuman">人が話した時の線</button>
+      <button id="playAuto" class="gold">自律ループを再生</button>
+      <button id="playAll" class="jade">全体を流す</button>
+      <button id="toggleWalls">8枚の壁を止める</button>
       <span id="flowStatus">READY</span>
     </section>
 
-    <section class="story-board">
-      <svg class="story-lines" viewBox="0 0 1100 520" preserveAspectRatio="none" aria-hidden="true">
-        <path id="sFiles" class="story-wire" d="M175 260 C245 260 270 260 340 260"/>
-        <path id="sTalk" class="story-wire gold" d="M710 230 C790 210 810 165 875 145"/>
-        <path id="sReply" class="story-wire gold" d="M875 180 C820 230 790 275 710 285"/>
-        <path id="sWrite" class="story-wire blocked" d="M555 385 C555 430 555 445 555 480"/>
-      </svg>
+    <section class="board-shell">
+      <div class="mobile-hint">← スマホは左右にスワイプして配線を追えます →</div>
+      <div class="board-scroll" id="boardScroll">
+        <div class="board" id="board">
+          <svg viewBox="0 0 1500 820" preserveAspectRatio="none" aria-hidden="true">
+            <path id="h1" class="wire human" d="M75 170 C150 170 165 170 230 170"/>
+            <path id="h2" class="wire human" d="M350 170 C420 170 425 170 500 170"/>
+            <path id="h3" class="wire human" d="M620 170 C700 170 705 170 780 170"/>
+            <path id="h4" class="wire human" d="M900 170 C980 170 985 170 1055 170"/>
+            <path id="h5" class="wire human" d="M1175 170 C1260 170 1280 170 1370 170"/>
+            <path id="a1" class="wire auto" d="M100 565 C180 565 185 565 260 565"/>
+            <path id="a2" class="wire auto" d="M380 565 C455 565 465 565 535 565"/>
+            <path id="a3" class="wire auto" d="M655 565 C735 565 740 565 815 565"/>
+            <path id="a4" class="wire auto" d="M935 565 C1005 565 1010 565 1080 565"/>
+            <path id="a5" class="wire auto" d="M1200 565 C1280 565 1300 565 1380 565"/>
+            <path id="a6" class="wire auto" d="M1140 615 C1140 700 980 735 890 675"/>
+            <path id="a7" class="wire auto" d="M820 645 C720 710 600 705 570 625"/>
+            <path id="a8" class="wire auto" d="M600 535 C630 420 790 405 845 480"/>
+            <path id="a9" class="wire auto" d="M890 500 C905 380 1050 350 1115 425"/>
+            <path id="a10" class="wire auto" d="M1170 455 C1250 395 1375 390 1405 280"/>
+            <path id="s1" class="wire safe" d="M900 205 C930 250 1010 270 1070 285"/>
+            <path id="s2" class="wire blocked" d="M1180 305 C1260 305 1320 340 1385 395"/>
+            <path id="b1" class="wire bridge" d="M290 215 C315 345 300 445 320 515"/>
+            <path id="b2" class="wire bridge" d="M560 215 C550 325 565 425 590 515"/>
+          </svg>
 
-      <button class="big-node source-node" data-id="files">
-        <span>① SOURCE</span><b>アプリのファイルを見る</b><small>コード / ログ / 操作履歴 / 失敗</small>
-      </button>
+          <div class="lane-label human-label">HUMAN EVENT / 人が話した時だけ</div>
+          <div class="lane-label auto-label">AUTONOMOUS LOOP / 人が黙っていても回る</div>
 
-      <button class="core-node" id="coreNode" data-id="core">
-        <span>② AUTONOMOUS CORE</span>
-        <b>自律して育つ核</b>
-        <small>人が黙っていても回る</small>
-        <div class="mini-cycle" aria-hidden="true">
-          <i>観察</i><i>試す</i><i>評価</i><i>継承</i>
+          <button class="node human-node" style="left:5%;top:14%" data-id="chat"><span>ENTRY</span><b>CHAT</b><small>人の発話</small></button>
+          <button class="node human-node" style="left:19%;top:14%" data-id="repository"><span>RETRIEVAL</span><b>REPOSITORY</b><small>ファイル取得</small></button>
+          <button class="node human-node" style="left:37%;top:14%" data-id="context"><span>ASSEMBLY</span><b>CONTEXT</b><small>事実/履歴/境界</small></button>
+          <button class="node human-node" style="left:55%;top:14%" data-id="dialogue"><span>EVENT DRIVEN</span><b>NATIVE DIALOGUE</b><small>メッセージ時のみ</small></button>
+          <button class="node core" style="left:73%;top:14%" data-id="mind"><span>INDIVIDUAL BOUNDARY</span><b>NATIVE MIND</b><small>ChronicleRing</small></button>
+          <button class="node human-node" style="left:92%;top:14%" data-id="response"><span>OUTPUT</span><b>RESPONSE</b><small>会話へ戻る</small></button>
+
+          <button class="node auto-node" style="left:7%;top:65%" data-id="files"><span>SOURCE</span><b>APP FILES</b><small>コード/ログ/履歴</small></button>
+          <button class="node auto-node" style="left:21%;top:65%" data-id="vault"><span>1F</span><b>VAULT CORE</b><small>index.mjs / cli.mjs</small></button>
+          <button class="node auto-node" style="left:39%;top:65%" data-id="fairy"><span>2F</span><b>FAIRY CORE</b><small>score / ledger / tripwire</small></button>
+          <button class="node auto-node" style="left:57%;top:65%" data-id="admin"><span>3F</span><b>ADMIN / DRIVE</b><small>課題選択・司令塔</small></button>
+          <button class="node auto-node" style="left:75%;top:65%" data-id="supervisor"><span>4.5F</span><b>SUPERVISOR</b><small>影worker監督</small></button>
+          <button class="node auto-node" style="left:92%;top:65%" data-id="phantom"><span>SHADOW</span><b>PHANTOM</b><small>12 gen / batch</small></button>
+
+          <button class="node organ" style="left:57%;top:82%" data-id="ledger"><span>MEMORY</span><b>LEDGER</b><small>追記台帳</small></button>
+          <button class="node organ" style="left:75%;top:82%" data-id="evolution"><span>CELL CYCLE</span><b>EVOLUTION</b><small>適応→淘汰→継承</small></button>
+          <button class="node organ" style="left:92%;top:82%" data-id="worldline"><span>COUNTERFACTUAL</span><b>WORLDLINES</b><small>6分岐 / containment</small></button>
+
+          <button class="node safety" style="left:73%;top:35%" data-id="gate"><span>CONTROL</span><b>INFERENCE GATE</b><small>起動前検査</small></button>
+          <button class="node blocked-node" style="left:92%;top:45%" data-id="reality"><span>WRITE PATH</span><b>REALITY GATE</b><small>PUBLIC: BLOCKED</small></button>
+
+          <div class="wall-ring" id="wallRing" aria-label="8枚の壁"></div>
+          <div class="proactive" data-id="proactive"><span>AUTONOMOUS VOICE</span><b>proactiveThoughts()</b><small>必要なら向こうから話す</small></div>
         </div>
-      </button>
-
-      <button class="big-node talk-node" data-id="proactive">
-        <span>③ SHOULD I SPEAK?</span><b>話す価値がある？</b><small>必要なら自分から声を上げる</small>
-      </button>
-
-      <button class="big-node chat-node" data-id="chat">
-        <span>④ CHAT</span><b>会話に出てくる</b><small>人から聞かれた時もここへ</small>
-      </button>
-
-      <button class="write-node" data-id="reality">
-        <span>REALITY WRITE</span><b>本番変更は人に聞く</b><small>AUTO WRITE = 0</small>
-      </button>
-    </section>
-
-    <section class="core-detail" id="coreDetail" aria-hidden="true">
-      <div class="core-detail-head">
-        <div><span>②の中身</span><h2>自律して育つ核の内部</h2><p>ここから先が専門的な配線。普段は閉じておいていい。</p></div>
-        <button id="closeCore">閉じる</button>
-      </div>
-
-      <div class="organ-flow">
-        <button class="organ" data-id="observe"><span>A</span><b>観察する</b><small>保管庫 / ADMIN</small></button>
-        <i>→</i>
-        <button class="organ" data-id="shadow"><span>B</span><b>影で試す</b><small>SUPERVISOR / PHANTOM / WORLDLINE</small></button>
-        <i>→</i>
-        <button class="organ" data-id="judge"><span>C</span><b>評価する</b><small>passed / rejected / unavailable</small></button>
-        <i>→</i>
-        <button class="organ" data-id="inherit"><span>D</span><b>淘汰・継承</b><small>ALife / genome / ring.adapt</small></button>
-        <i>→</i>
-        <button class="organ" data-id="ledger"><span>E</span><b>台帳へ残す</b><small>append-only ledger</small></button>
-      </div>
-
-      <div class="wall-strip">
-        <b>8枚の壁</b>
-        <span>主権の門</span><span>追記台帳</span><span>三状態判定</span><span>範囲の狭窄</span><span>逆流禁止</span><span>人の承認</span><span>署名済証拠</span><span>表裏の分離</span>
       </div>
     </section>
 
-    <section class="explain-grid">
-      <article class="panel inspect">
-        <div class="panel-head"><b>いま選んだ場所</b><span id="inspectType">OVERVIEW</span></div>
-        <h2 id="inspectTitle">全体像</h2>
-        <p id="inspectText">アプリのファイルを継続観察し、影で試し、評価・継承し、話す価値がある時だけ会話へ出す。本番変更だけは人の承認へ送ります。</p>
-        <div class="file-box" id="inspectFile">実コードをタップで表示</div>
+    <section class="below-grid">
+      <article class="inspect panel">
+        <div class="panel-head"><b>SELECTED NODE</b><span id="inspectType">tap a node</span></div>
+        <h2 id="inspectTitle">配線を触ってみる</h2>
+        <p id="inspectText">ノードを押すと、実ファイル・関数・役割をここに表示します。</p>
+        <div class="file-box" id="inspectFile">—</div>
       </article>
-
-      <article class="panel runtime">
-        <div class="panel-head"><b>隔離コピーで実際に動かした確認</b><span>ACTUAL RECHECK</span></div>
+      <article class="runtime panel">
+        <div class="panel-head"><b>ACTUAL RECHECK</b><span>isolated copy</span></div>
         <div class="metric-grid" id="recheck"></div>
       </article>
-    </section>
-
-    <section class="not-wired panel">
-      <div class="panel-head"><b>まだそのまま使えない部分</b><span>NOT WIRED YET</span></div>
-      <div id="limitations"></div>
+      <article class="limits panel">
+        <div class="panel-head"><b>NOT WIRED YET</b><span>そのまま使えない所</span></div>
+        <div id="limitations"></div>
+      </article>
     </section>
   </main>
 
-  <footer><span>WORLD BLUEPRINT / SIMPLE INTERNAL MAP</span><b>まず意味。その後で配線。</b><a href="index.html">会話へ戻る</a></footer>
+  <footer><span>WORLD BLUEPRINT / INTERNAL WIRING</span><b>発見を自動化するのではない。発見者を進化させる。</b><a href="index.html">会話へ戻る</a></footer>
   <script src="architecture.js"></script>
 </body>
 </html>
