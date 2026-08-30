@@ -4,12 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#f6f3e9">
-  <title>世界の設計図 — アプリ保管庫と話そう</title>
+  <title>アプリ保管庫と話そう — World Blueprint</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <div class="assumption">これは想定です <span>PUBLIC CONCEPT DEMO</span></div>
-
   <div class="app">
     <header class="topbar">
       <div class="brand">
@@ -18,7 +17,7 @@
       </div>
       <div class="top-actions">
         <div class="runtime"><span></span><b id="runtimeState">loading</b><small id="runtimeGen">G—</small></div>
-        <button id="openStructure" class="structure-btn">内部で何が回ってる？</button>
+        <a class="structure-btn" href="architecture.html">動いている設計図 ↗</a>
       </div>
     </header>
 
@@ -26,7 +25,7 @@
       <section class="intro" id="intro">
         <p class="eyebrow">ONE SCREEN / APP REPOSITORY CONVERSATION</p>
         <h1>さぁ、<br><span>アプリ保管庫と話そう。</span></h1>
-        <p>普通のチャットと違って、裏では会話していない間も影・世代・台帳が回る。<br>人の発話は「毎回の起動スイッチ」ではなく、流れ込む一つのイベント。</p>
+        <p>画面はただの会話ログ。けれど裏では、会話していない間も影・世代・台帳が回る。<br>必要な時は、人が呼ばなくても保管庫側から提案や気づきを話し始める。</p>
         <div class="truth-row">
           <span class="truth actual">実コード</span><span>自発発話・連続世代・NativeMind会話あり</span>
           <span class="truth no">未接続</span><span>公開版から実LLM / 本番書込み</span>
@@ -38,9 +37,7 @@
           <div><span class="light"></span><b>保管庫の妖精</b><small id="organState">native-symbolic / public replay</small></div>
           <div class="mini-stats"><span id="miniGen">G—</span><span id="miniPop">—体</span><span id="miniWrite">WRITE FALSE</span></div>
         </div>
-
         <div class="messages" id="messages" aria-live="polite"></div>
-
         <div class="suggestions" id="suggestions">
           <button data-q="どこまでこのアプリは自律的に育った？">どこまで育った？</button>
           <button data-q="いま何世代？">いま何世代？</button>
@@ -48,7 +45,6 @@
           <button data-q="今できることと、まだできないことは？">何ができる？</button>
           <button data-q="世界線はどうなってる？">世界線は？</button>
         </div>
-
         <div class="composer">
           <textarea id="chatInput" rows="1" placeholder="保管庫に話しかける…"></textarea>
           <button id="send">↑</button>
@@ -60,38 +56,8 @@
       </section>
     </main>
 
-    <footer><span>PUBLIC DEMO</span><b>会話していない間も、内側は回る。</b><span>PRODUCTION WRITE = DISABLED</span></footer>
+    <footer><span>CHAT SURFACE</span><b>会話していない間も、内側は回る。</b><a href="architecture.html">内部設計図を見る ↗</a></footer>
   </div>
-
-  <div class="drawer-mask" id="drawerMask"></div>
-  <aside class="drawer" id="drawer" aria-hidden="true">
-    <div class="drawer-head">
-      <div><span class="truth actual">実コードから再構成</span><h2>ファイルから自動で回る構造</h2><p>チャットとは別画面ではなく、同じ一画面の“内部を覗く”ドロワー。</p></div>
-      <button id="closeStructure">×</button>
-    </div>
-
-    <div class="loop-summary">
-      <div><small>UI TICK</small><b>2s</b></div>
-      <div><small>SUPERVISOR</small><b>1s</b></div>
-      <div><small>PHANTOM</small><b>12 gen/batch</b></div>
-      <div><small>NATIVE LLM</small><b>未接続</b></div>
-    </div>
-
-    <div class="pipeline" id="pipeline"></div>
-    <button class="play" id="playLoop">自動循環を再生</button>
-    <div class="pipeline-note" id="pipelineNote">ノードをタップすると、実ファイルと役割を表示します。</div>
-
-    <section class="recheck">
-      <h3>隔離コピーでの再実行確認</h3>
-      <div class="recheck-grid" id="recheckGrid"></div>
-    </section>
-
-    <section class="limitations">
-      <h3>そのまま使えないところ</h3>
-      <div id="limitations"></div>
-    </section>
-  </aside>
-
   <script src="app.js"></script>
 </body>
 </html>
